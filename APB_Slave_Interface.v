@@ -189,8 +189,42 @@ module APB_Slave_Interface(
 						SPI_BR<=8'h00;
 				end
 		end
-	
-	
+
+	// sequential block of Send data 
+
+	always@(pasedge PCLK or negedge PRESET_n)
+		begin
+			if(PRESET_n)
+				send_data_o<=1'b0;
+			else
+				begin
+				  if(wr_enb)
+					  begin
+						  if((spi_mode_o == spi_run || spi_mode_o == spi_wait) && (SPI_DR == PWDATA_i) && (SPI_DR != miso_data_i))
+							  send_data_o<=1'b1;
+						  else
+							   send_data_o<=1'b0;
+					  end
+					else
+						send_data_o<=1'b0;
+				end
+		end
+
+	// sequential block of mosi data 
+
+	always@(pasedge PCLK or negedge PRESET_n)
+		begin
+			if(PRESET_n)
+				mosi_data_o<=8'b0;
+			else
+				begin
+				   if((spi_mode_o == spi_run || spi_mode_o == spi_wait) && (SPI_DR == PWDATA_i) && (SPI_DR != miso_data_i))
+							  mosi_data_o<=SPI_DR;
+				   else
+							   mosi_data_o<=mosi_data_o;
+					  end
+					
+		end
 	
 
 endmodule
