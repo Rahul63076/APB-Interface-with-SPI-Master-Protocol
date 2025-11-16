@@ -11,9 +11,7 @@ module APB_Slave_Interface(
        output [`SPI_APB_ADDR_WIDTH-1 :0]sppr_o,spr_o,
        output [`SPI_APB_DATA_WIDTH-1 :0]PRDATA_o);
 
-        //FSM State declaration of APB and SPI
-        reg [1:0]apb_ps,apb_ns;//APB
-        reg [1:0]spi_ps,spi_ns;//SPI
+       
 
 	//Declaration of Control / Status / Baud / Data registers
 	
@@ -35,28 +33,164 @@ module APB_Slave_Interface(
 	wire modf;
 	reg spif,sptef;
 
-        //Declaration of  Parameters for APB states and SPI modes
+	 //FSM State declaration of APB and SPI
+        reg [1:0]apb_ps,apb_ns;//APB
+        reg [1:0]spi_ps,spi_ns;//SPI
 	
         //Parameters for APB states   
 
 	parameter IDLE = 2'b00,
 	          SETUP = 2'b01,
-		  ENABLE = 2'b10;
+		      ENABLE = 2'b10;
 	
 	//Parameters for SPI states
          
 	parameter spi_run = 2'b00,
 	       	  spi_wait= 2'b01,
-		  spi_stop= 2'b10;
+		      spi_stop= 2'b10;
 
 
         // Parameter for control register and baudRate register
 	
 	parameter cr2_mask = 8'b00011011,
-		  br_mask = 8'b01110111;
+		       br_mask = 8'b01110111;
 
-	 
-	  
+	   //APB state and next state block
 
+	always@(pasedge PCLK or negedge PRESET_n)
+		begin
+			if(PRESET_n)
+				apb_ps<=IDLE;
+			else
+				apb_ps<=apb_ns;
+		end
+	
+	always@(*)
+		begin
+			case(apb_ps)
+				IDLE: if(PSEL && (!PENABLE_i))
+					      apb_ns<=SETUP;
+				      else
+						  apb_ns<=IDLE;
+				SETUP:if(PSEL && (!PENABLE_i))
+					      apb_ns<=SETUP;
+				else if(PSEL && (PENABLE_i))
+					      apb_ns<=ENABLE;
+				     else
+						 apb_ns<=IDLE;
+				ENABLE:if(PSEL)
+					     apb_ns<=SETUP;
+				       else
+						 apb_ns<=IDLE;
+				default:apb_ns<=IDLE;
+			endcase
+		end
+
+	 //SPI state and next state block
+
+	always@(pasedge PCLK or negedge PRESET_n)
+		begin
+			if(PRESET_n)
+				spi_ps<=spi_run;
+			else
+				spi_ps<=spi_ns;
+		end
+					       
+	 always@(*)
+		begin
+			case(spi_ps)
+				spi_run:if(!spe)
+					        spi_ns<=spi_wait;
+				        else
+							spi_ns<=spi_run;
+				spi_wait:if(spiswai_o)
+					        spi_ns<=spi_stop;
+				         else if (!spe)
+					       spi_ns<=spi_wait;
+				          else
+					        spi_ns<=spi_run;
+				spi_stop:if(!spiswai_o)
+					        spi_ns<=spi_wait;
+				          else
+							spi_ns<=spi_run;
+				default:spi_ns<=spi_run;
+			endcase
+		end
+    //assignment of write and read enable
+	
+	assign rd_enb = ((!PWRITE_i) && (apb_ps == ENABLE))?1'b1:1'b0;
+	assign wr_enb = ((PWRITE_i) && (apb_ps == ENABLE))?1'b1:1'b0;
+
+	//assignment of PREADY 
+	
+	assign PREADY_o = (apb_ps == ENABLE)?1'b1:1'b0;
+
+	//assignment of PREADY 
+
+	assign PSLVERR_o = (apb_ps == ENABLE)?(~tip_i):1'b0;
+
+
+	// sequential block of SPI_CR 1
+
+	always@(pasedge PCLK or negedge PRESET_n)
+		begin
+			if(PRESET_n)
+				SPI_CR_1<=8'h04;
+			else
+				begin
+				  if(wr_enb)
+					  begin
+						  if(PADDR_i == 3'b000)
+							  SPI_CR_1<=PWDATA_i;
+						  else
+							  SPI_CR_1<=SPI_CR_1;
+					  end
+					else
+						SPI_CR_1<=8'h04;
+				end
+		end
+
+	// sequential block of SPI_CR 2
+
+	always@(pasedge PCLK or negedge PRESET_n)
+		begin
+			if(PRESET_n)
+				SPI_CR_2<=8'h00;
+			else
+				begin
+				  if(wr_enb)
+					  begin
+						  if(PADDR_i == 3'b001)
+							  SPI_CR_2<=(PWDATA_i & cr2_mask);
+						  else
+							  SPI_CR_2<=SPI_CR_2;
+					  end
+					else
+						SPI_CR_2<=8'h00;
+				end
+		end
+
+	// sequential block of SPI_BR
+
+	always@(pasedge PCLK or negedge PRESET_n)
+		begin
+			if(PRESET_n)
+				SPI_BR<=8'h00;
+			else
+				begin
+				  if(wr_enb)
+					  begin
+						  if(PADDR_i == 3'b010)
+							  SPI_CR_2<=(PWDATA_i & br_mask);
+						  else
+							  SPI_BR<=SPI_BR;
+					  end
+					else
+						SPI_BR<=8'h00;
+				end
+		end
+	
+	
+	
 
 endmodule
