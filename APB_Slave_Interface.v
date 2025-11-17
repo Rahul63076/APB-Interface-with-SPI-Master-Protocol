@@ -129,6 +129,27 @@ module APB_Slave_Interface(
 
 	assign PSLVERR_o = (apb_ps == ENABLE)?(~tip_i):1'b0;
 
+//assignment of SPI control register 1
+	assign lsbfe_o = SPI_CR_1[0];
+	assign ssoe_o = SPI_CR_1[1];
+	assign cpha_o = SPI_CR_1[2];
+	assign cpol_o = SPI_CR_1[3];
+	assign mstr_o = SPI_CR_1[4];
+	assign sptie_o = SPI_CR_1[5];
+	assign spe_o = SPI_CR_1[6];
+	assign spie_o = SPI_CR_1[7];
+	
+//assignment of SPI control register 2
+	
+	assign modfen = SPI_CR_2[4];
+	assign spiswai_o = SPI_CR_2[1];
+
+//assignment of SPI Baud Rate Register 
+
+	assign spr_o = SPI_BR[2:0];
+	assign sppr_o = SPI_BR[6:4];
+	
+
 
 	// sequential block of SPI_CR 1
 
