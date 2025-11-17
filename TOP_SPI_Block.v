@@ -22,13 +22,13 @@ module SPI_Top_Block(
 		.ss_i(ss_i), 
 		.sppr_i(sppr_i), 
 		.spr_i(spr_i), 
-		.spi_mode_i(spi_mode_i), 
+		.spi_mode_i(spi_mode), 
 		.miso_receive_sclk_o(miso_receive_sclk_o), 
 		.miso_receive_sclk0_o(miso_receive_sclk0_o), 
 		.mosi_send_sclk_o(mosi_send_sclk_o), 
 		.mosi_send_sclk0_o(mosi_send_sclk0_o), 
 		.sclk_o(sclk_o), 
-		.BaudRateDivisor_o(BaudRateDivisor_o)
+		.BaudRateDivisor_o(baudratedivisor)
 	);
 
 
@@ -41,7 +41,7 @@ module SPI_Top_Block(
 		.send_data_i(send_data_i), 
 		.spiswa_i(spiswa_i), 
 		.spi_mode_i(spi_mode_i), 
-		.BaudRateDivisor_i(BaudRateDivisor_i), 
+		.BaudRateDivisor_i(baudratedivisor), 
 		.ss_o(ss_o), 
 		.receive_data_o(receive_data_o), 
 		.tip_o(tip_o)
@@ -65,7 +65,7 @@ module SPI_Top_Block(
 		.mosi_send_sclk_o(mosi_send_sclk_o), 
 		.miso_receive_sclk0_o(miso_receive_sclk0_o), 
 		.mosi_send_sclk0_o(mosi_send_sclk0_o), 
-		.data_mosi_i(data_mosi_i), 
+		.data_mosi_i(data_mosi), 
 		.mosi_o(mosi_o), 
 		.data_miso_o(data_miso_o)
 	);
@@ -92,12 +92,13 @@ module SPI_Top_Block(
 		.spiswai_o(spiswai_o), 
 		.PREADY_o(PREADY_o), 
 		.PSLVERR_o(PSLVERR_o), 
-		.spi_mode_o(spi_mode_o), 
+		.spi_mode_o(spi_mode), 
 		.send_data_o(send_data_o), 
 		.spi_interrupt_request_o(spi_interrupt_request_o), 
-		.mosi_data_o(mosi_data_o), 
-		.sppr_o(sppr_o), 
-		.spr_o(spr_o), 
+		.mosi_data_o(mosi_data), 
+		.sppr_o(sppr), 
+		.spr_o(spr), 
 		.PRDATA_o(PRDATA_o)
 	);
 
+endmodule
