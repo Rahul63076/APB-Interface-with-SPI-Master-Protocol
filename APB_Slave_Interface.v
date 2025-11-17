@@ -149,7 +149,13 @@ module APB_Slave_Interface(
 	assign spr_o = SPI_BR[2:0];
 	assign sppr_o = SPI_BR[6:4];
 	
+	assign spif = (SPI_DR != 8'h00)?1'b1:1'b0;
+	assign sptef = (SPI_DR == 8'h00)?1'b1:1'b0;
 
+
+	assign SPI_SR = (!PRESET_n)?8'b0010_0000:{spif,1'b0,sptef,modf,4'b0};
+
+	and  flag(modf,!ss_i,mstr_o,modfen,!ssoe_o);
 
 	// sequential block of SPI_CR 1
 
@@ -246,6 +252,31 @@ module APB_Slave_Interface(
 					  end
 					
 		end
+
+	//combinational block is for DRDATA
+
+	always@(*)
+		begin
+			if(!rd_enb)
+				PRDATA = 8'b0;
+			else
+				begin
+					case(PADDR)
+						3'd0:PRDATA = SPI_CR_1;
+						3'd1:PRDATA = SPI_CR_2;
+						3'd2:PRDATA = SPI_BR;
+						3'd3:PRDATA = SPI_SR;
+						3'd4:PRDATA = 8'b0;
+						3'd5:PRDATA = SPI_DR;
+						3'd6:PRDATA = 8'b0;
+						3'd7:PRDATA = 8'b0;
+						default:PRDATA = 8'b0;
+					endcase
+				end
+		end
+	
+						
+				
 	
 
 endmodule
