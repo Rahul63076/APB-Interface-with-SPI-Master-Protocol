@@ -171,7 +171,7 @@ module APB_Slave_Interface(
 	
 	and  flag(modf,!ss_i,mstr_o,modfen,!ssoe_o);
 
-	// sequential block of SPI_CR 1
+		// sequential block of SPI_CR 1
 
 	always@(posedge PCLK or negedge PRESET_n)
 		begin
@@ -186,8 +186,8 @@ module APB_Slave_Interface(
 				  else
 				       SPI_CR_1<=SPI_CR_1;
 			        end
-			   else
-			         SPI_CR_1<=8'h04;
+			   //else
+			       //  SPI_CR_1<=8'h04;
 			end
 		end
 
@@ -206,8 +206,8 @@ module APB_Slave_Interface(
 			      else
 			        SPI_CR_2<=SPI_CR_2;
 			      end
-			   else
-			    SPI_CR_2<=8'h00;
+			 //  else
+			 //   SPI_CR_2<=8'h00;
 		   end
 		end
 
@@ -226,8 +226,8 @@ module APB_Slave_Interface(
 				   else
 				      SPI_BR<=SPI_BR;
 				end
-			    else
-				 SPI_BR<=8'h00;
+			  //  else
+			//	 SPI_BR<=8'h00;
 			end
 		end
 
@@ -239,15 +239,13 @@ module APB_Slave_Interface(
 			send_data_o<=1'b0;
 		   else
 		       begin
-		           if(wr_enb)
-			       begin
 				 if((spi_mode_o == spi_run || spi_mode_o == spi_wait) && (SPI_DR == PWDATA_i) && (SPI_DR != miso_data_i))
 					send_data_o<=1'b1;
 				 else
 					send_data_o<=1'b0;
-				end
-			   else
-				 send_data_o<=1'b0;
+			
+			//   else
+			//	 send_data_o<=1'b0;
 			end
 		end
 
@@ -291,7 +289,7 @@ module APB_Slave_Interface(
 			      else
 				begin
 				    if((spi_mode_o == spi_run || spi_mode_o == spi_wait) && receive_data_i)
-                                       SPI_DR<=mosi_data_o;
+                                       SPI_DR<=miso_data_i;
 			            else
     				       SPI_DR<=SPI_DR;
 				end
@@ -329,19 +327,24 @@ module APB_Slave_Interface(
 	   begin
 	      if((!spie_o) && (!sptie_o))
 	         spi_interrupt_request_o<=1'b0;
+	      else if((spie_o) && (!sptie_o)) 
+                        begin
+                        if(spif || modf)
+	                spi_interrupt_request_o<=1'b1;
+                         else
+                         spi_interrupt_request_o<=1'b0;
+                        end
+	      else if((!spie_o) && (sptie_o))
+	             spi_interrupt_request_o<=sptef;
 	      else
-		 begin
-	           if((spie_o) && (!sptie_o))
-	              spi_interrupt_request_o<= (spif || modf);
-	           else
-		      begin
-		         if((!spie_o) && (sptie_o))
-			    spi_interrupt_request_o<=sptef;
-		         else
-			    spi_interrupt_request_o<=(spif || modf || sptef);
-			end
-		 end
-	   end	 
+                    begin 
+                    if(spif || modf || sptef)
+	            spi_interrupt_request_o<=1'b1;
+                    else
+                     spi_interrupt_request_o<=1'b0;
+		    end
+	   end
+	   
              	 
 	
 
