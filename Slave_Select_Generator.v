@@ -15,38 +15,11 @@ module Slave_Select_Generator(
 	wire [15:0]target_s;
 	reg rcv_s;
 
-	assign target_s = BaudRateDivisor_i * 5'd16;
+	assign target_s = (BaudRateDivisor_i * 5'd16)/2;
 
 	assign tip_o = ~ss_o;
 
-       // Generate the counter for we can reach the target and disconnect the
-       // slave select
-
-         always@(posedge PCLK or negedge PRESET_n)
-	    begin
-		 if(!PRESET_n)
-			 count_s<=16'hffff;
-		 else
-	            begin
-	                 if((!spiswa_i) && (mstr_i == 1'b1) && ((spi_mode_i == RUN)||(spi_mode_i == WAIT)))
-	                      begin
-	                         if(send_data_i==1'b1)
-				 begin
-		                      if(count_s==(target_s-1'b1))
-				        count_s<=16'hffff;
-			              else
-  				        count_s<=count_s + 1'b1;
-				  end
-	                          else
-			                count_s<=16'b0;
-			          end
-		              else
-			        count_s<=16'hffff;
-		               end
-	               end
-
-
-
+               
         // This is the always block of slave select output to selecting the
 	// the slave
 
@@ -56,52 +29,46 @@ module Slave_Select_Generator(
 	   begin
 		   if(!PRESET_n)
 		       begin
-		           ss_o<=1;
-                        end
-		     else
-			    if((!spiswa_i) && (mstr_i == 1'b1) && ((spi_mode_i == RUN)||(spi_mode_i == WAIT)))
-				begin
-					if(send_data_i==1'b0)					  
-						ss_o<=1;			
-					 else 
-					     if(count_s<=(target_s-1))
-					         ss_o<=0;					     
-					     else					      
-						   ss_o<=1;
-					      
-				  end
-			              else		               
-		                         ss_o<=1;
-	                    	                	   
-	       end	
+		         ss_o<=1;
+			 rcv_s<=0;
+			count_s<=16'hFFFF;
+                       end
+		   else if((!spiswa_i) && (mstr_i == 1'b1) && ((spi_mode_i == RUN)||(spi_mode_i == WAIT)))
+			begin
+		            if(send_data_i)	
+				   begin				  
+			        	ss_o<=0;
+			                count_s<=0;
+	           			rcv_s<=rcv_s;
+			            end			
+			    else if(count_s<=(target_s-1)) 
+				   begin
+				          		 ss_o<=0;
+                    			  		 count_s <= count_s + 1'b1;
+						         if((count_s==(target_s-1)))
+						            rcv_s<=1'b1;
+						         else 
+						             rcv_s<=0;						
+				    end
+      	                      						
+		           else begin					     
+			         ss_o<=1;
+	              		 rcv_s<=0;
+		        	 count_s<=16'hFFFF;
+				 end	
+		       end
+		  else
+		       	begin						     
+				    ss_o<=1;
+				      rcv_s<=0;
+				      count_s<=16'hFFFF;
+			end	
+        								 	          	                	   
+	               
+            end	   
           
 
-	   //This is the always block for receive the data rcv   
-
-         always@(posedge PCLK or negedge PRESET_n)
-	   begin
-		   if(!PRESET_n)
-		       begin
-		           rcv_s<=1;
-                        end
-		     else
-			    if((!spiswa_i) && (mstr_i == 1'b1) && ((spi_mode_i == RUN)||(spi_mode_i == WAIT)))
-				begin
-					if(send_data_i==1'b0)					  
-						rcv_s<=1;			
-					 else 
-					     if(count_s<=(target_s-1))
-					         rcv_s<=0;					     
-					     else					      
-						  rcv_s<=1;
-					      
-				  end
-			              else		               
-		                         rcv_s<=1;
-	                    	                	   
-	       end	
-          
-
+	  
 
        // This is the block of receive the data from rcv
 
