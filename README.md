@@ -1,52 +1,23 @@
-APB Interface With SPI Master – Verilog Project
--
-
-This project shows how an APB (Advanced Peripheral Bus) Slave controls an SPI Master using Verilog.
-The APB side writes configuration and data, and the SPI Master sends/receives data through MOSI/MISO.
+Project_APB_Interfaced_SPI_Master_core
 ---
 
-📌 Overview
+Project Overview
 
-APB is used by processor to write/read registers.
-SPI Master uses those registers to send data to an external SPI Slave.
-Output data (received from MISO) is given back to APB through read register.
----
+This project was developed as part of my RTL design internship at Maven Silicon. The entire SPI Master IP core was built strictly according to detailed architecture diagrams provided by Maven Silicon, which specified every signal, connection, and interface for each block. My role was to translate these diagrams into synthesizable RTL code, ensuring that every module and signal matched the given specifications exactly.
 
-📦 Features
+Design Approach and Key Takeaways
+Architecture-Driven Implementation:
 
-APB Slave interface (PSEL, PENABLE, PWRITE, PWDATA, PRDATA)
-SPI Master (MOSI, MISO, SCLK, SS)
-Control register (enable, CPOL, CPHA)
-Clock divider for SPI SCLK
-TX register & RX register
-Transfer-done status flag
-Clean modular Verilog design
-Task-based APB testbench
----
+Every module and signal was coded strictly according to Maven Silicon’s detailed architecture diagrams, ensuring full alignment with industry standards.
 
-🧩 Block Modules
+Signal-Level Precision:
 
-1. APB Slave – handles read/write and updates registers
-2. Control Register – SPI enable, mode bits
-3. Clock Divider – creates SCLK
-4. TX Register – holds parallel data to send
-5. RX Register – stores received data
-6. SPI Master – shifts data on MOSI and samples MISO
-8. Top Module – connects all blocks
+All signal names, widths, and connections were directly mapped from the provided specs, resulting in a clear and robust design.
 
+Practical Protocol Experience:
 
-⚙️ How It Works
+This project offered hands-on RTL coding and deepened my understanding of SPI protocol and real-world hardware design practices.
 
-1. APB Master writes:
-SPI enable
-CPOL/CPHA
-Clock divider
-TX data
-2. SPI Master starts transfer
-3. SCLK toggles
-4. MOSI sends bits (MSB → LSB)
-5. MISO data is captured
-6. RX register stores received data
-7. Transfer-done flag goes high
-8. APB Master reads RX data and status
----
+Summary
+
+By building the SPI Master IP core exactly as specified in the provided architecture diagrams, I developed both my technical skills and my appreciation for the importance of detailed, signal-level design in digital systems. This experience has prepared me for future work in protocol-based hardware design and SoC integration, where architectural clarity and implementation discipline are essential.
